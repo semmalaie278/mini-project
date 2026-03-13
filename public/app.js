@@ -283,10 +283,13 @@ async function checkDbStatus() {
 // ============================================================
 // DASHBOARD
 // ============================================================
+let donorChartInstance = null;
+
 async function loadDashboard() {
     const stats = await apiGet('/stats');
     const stock = await apiGet('/stock');
     const donations = await apiGet('/donations');
+    const donors = await apiGet('/donors');
     updateModeBadge();
 
     document.getElementById('stat-donors').textContent = stats.totalDonors;
@@ -314,6 +317,55 @@ async function loadDashboard() {
             <div class="bg-label">${s.blood_group}</div>
             <div class="bg-units">${s.units_available} units</div>
         </div>`).join('');
+
+    // Render Chart
+    const bgCounts = { 'A+': 0, 'A-': 0, 'B+': 0, 'B-': 0, 'AB+': 0, 'AB-': 0, 'O+': 0, 'O-': 0 };
+    donors.forEach(d => {
+        if (bgCounts[d.blood_group] !== undefined) {
+            bgCounts[d.blood_group]++;
+        }
+    });
+
+    const canvas = document.getElementById('donorChart');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (donorChartInstance) {
+            donorChartInstance.destroy();
+        }
+
+        donorChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(bgCounts),
+                datasets: [{
+                    label: 'Donors',
+                    data: Object.values(bgCounts),
+                    backgroundColor: [
+                        '#D72638', '#F46036', '#2E294E', '#1B998B',
+                        '#C5D86D', '#FF9F1C', '#2EC4B6', '#E71D36'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
 }
 
 // ============================================================
