@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blood Bank Management System</title>
+    <meta name="description"
+        content="A comprehensive Blood Bank Management System to track donors, blood stock, and donations.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">🩸</span>
+                <div class="logo-text">
+                    <span class="logo-title">BloodBank</span>
+                    <span class="logo-sub">Management System</span>
+                </div>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+                <span class="nav-icon">📊</span>
+                <span class="nav-label">Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" data-page="donors" id="nav-donors">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Donors</span>
+            </a>
+            <a href="#" class="nav-item" data-page="register" id="nav-register">
+                <span class="nav-icon">➕</span>
+                <span class="nav-label">Register Donor</span>
+            </a>
+            <a href="#" class="nav-item" data-page="stock" id="nav-stock">
+                <span class="nav-icon">🏥</span>
+                <span class="nav-label">Blood Stock</span>
+            </a>
+            <a href="#" class="nav-item" data-page="search" id="nav-search">
+                <span class="nav-icon">🔍</span>
+                <span class="nav-label">Search</span>
+            </a>
+            <a href="#" class="nav-item" data-page="history" id="nav-history">
+                <span class="nav-icon">📋</span>
+                <span class="nav-label">Donation History</span>
+            </a>
+            <a href="#" class="nav-item" data-page="add-donation" id="nav-add-donation">
+                <span class="nav-icon">💉</span>
+                <span class="nav-label">Add Donation</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="status-indicator">
+                <span class="status-dot" id="db-status-dot"></span>
+                <span id="db-status-text">Connecting...</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Toggle -->
+    <button class="mobile-toggle" id="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <!-- Main Content -->
+    <main class="main-content" id="main-content">
+        <!-- Toast Notification -->
+        <div class="toast" id="toast"></div>
+
+        <!-- Edit Modal -->
+        <div class="modal-overlay" id="modal-overlay">
+            <div class="modal" id="edit-modal">
+                <div class="modal-header">
+                    <h2>✏️ Edit Donor</h2>
+                    <button class="modal-close" onclick="closeModal()">✕</button>
+                </div>
+                <form id="edit-donor-form">
+                    <input type="hidden" id="edit-donor-id">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Full Name *</label>
+                            <input type="text" id="edit-name" placeholder="Full Name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Age *</label>
+                            <input type="number" id="edit-age" min="18" max="65" placeholder="Age" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender *</label>
+                            <select id="edit-gender" required>
+                                <option value="">Select Gender</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Blood Group *</label>
+                            <select id="edit-blood-group" required>
+                                <option value="">Select Blood Group</option>
+                                <option>A+</option>
+                                <option>A-</option>
+                                <option>B+</option>
+                                <option>B-</option>
+                                <option>AB+</option>
+                                <option>AB-</option>
+                                <option>O+</option>
+                                <option>O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number *</label>
+                            <input type="tel" id="edit-phone" placeholder="Phone Number" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Donation Date</label>
+                            <input type="date" id="edit-donation-date">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Address</label>
+                            <textarea id="edit-address" rows="2" placeholder="Full Address"></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- PAGE: DASHBOARD -->
+        <section class="page active" id="page-dashboard">
+            <div class="page-header">
+                <h1>Dashboard</h1>
+                <p>Blood Bank Overview & Summary</p>
+            </div>
+            <div class="stats-grid">
+                <div class="stat-card primary">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-donors">—</span>
+                        <span class="stat-label">Total Donors</span>
+                    </div>
+                </div>
+                <div class="stat-card success">
+                    <div class="stat-icon">🩸</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-units">—</span>
+                        <span class="stat-label">Total Blood Units</span>
+                    </div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="stat-icon">💉</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-donations">—</span>
+                        <span class="stat-label">Total Donations</span>
+                    </div>
+                </div>
+                <div class="stat-card danger">
+                    <div class="stat-icon">⚡</div>
+                    <div class="stat-info">
+                        <span class="stat-value" id="stat-critical">—</span>
+                        <span class="stat-label">Critical Stock</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🩸 Blood Availability</h3>
+                    </div>
+                    <div class="blood-groups-grid" id="blood-groups-dashboard"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>⏱️ Recent Donations</h3>
+                    </div>
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Donor</th>
+                                    <th>Blood Group</th>
+                                    <th>Date</th>
+                                    <th>Units</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-donations-table">
+                                <tr>
+                                    <td colspan="4" class="loading-row">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: DONORS LIST -->
+        <section class="page" id="page-donors">
+            <div class="page-header">
+                <div>
+                    <h1>Donor Registry</h1>
+                    <p>Manage all registered blood donors</p>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-download" onclick="downloadDonorsCSV()" title="Download as CSV (Excel)">⬇️
+                        CSV</button>
+                    <button class="btn btn-download-json" onclick="downloadDonorsJSON()" title="Download as JSON">⬇️
+                        JSON</button>
+                    <button class="btn btn-download-pdf" onclick="downloadDonorsPDF()" title="Download as PDF">⬇️
+                        PDF</button>
+                    <button class="btn btn-primary" onclick="navigateTo('register')">➕ Add New Donor</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>👤 All Donors <span id="donor-count-badge" class="count-badge"></span></h3>
+                    <div style="display:flex;gap:10px;align-items:center;">
+                        <input type="text" id="donor-search-filter" placeholder="🔍 Filter by name..."
+                            oninput="filterDonorTable(this.value)" class="filter-input">
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table" id="donors-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Blood Group</th>
+                                <th>Phone</th>
+                                <th>Last Donation</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="donors-table-body">
+                            <tr>
+                                <td colspan="8" class="loading-row">Loading donors...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: REGISTER DONOR -->
+        <section class="page" id="page-register">
+            <div class="page-header">
+                <h1>Register New Donor</h1>
+                <p>Add a new blood donor to the system</p>
+            </div>
+            <div class="card form-card">
+                <div class="card-header">
+                    <h3>➕ Donor Registration Form</h3>
+                </div>
+                <form id="add-donor-form" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="reg-name">Full Name <span class="required">*</span></label>
+                            <input type="text" id="reg-name" placeholder="e.g. Arjun Kumar" required>
+                            <span class="error-msg" id="err-name"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-age">Age <span class="required">*</span></label>
+                            <input type="number" id="reg-age" min="18" max="65" placeholder="18 – 65" required>
+                            <span class="error-msg" id="err-age"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-gender">Gender <span class="required">*</span></label>
+                            <select id="reg-gender" required>
+                                <option value="">— Select Gender —</option>
+                                <option>Male</option>
+                                <option>Female</option>
+                                <option>Other</option>
+                            </select>
+                            <span class="error-msg" id="err-gender"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-blood">Blood Group <span class="required">*</span></label>
+                            <select id="reg-blood" required>
+                                <option value="">— Select Blood Group —</option>
+                                <option>A+</option>
+                                <option>A-</option>
+                                <option>B+</option>
+                                <option>B-</option>
+                                <option>AB+</option>
+                                <option>AB-</option>
+                                <option>O+</option>
+                                <option>O-</option>
+                            </select>
+                            <span class="error-msg" id="err-blood"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-phone">Phone Number <span class="required">*</span></label>
+                            <input type="tel" id="reg-phone" placeholder="10-digit mobile number" required>
+                            <span class="error-msg" id="err-phone"></span>
+                        </div>
+                        <div class="form-group">
+                            <label for="reg-date">Last Donation Date</label>
+                            <input type="date" id="reg-date">
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="reg-address">Address</label>
+                            <textarea id="reg-address" rows="3" placeholder="Full residential address..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="reset" class="btn btn-secondary" onclick="clearRegForm()">🔄 Clear</button>
+                        <button type="submit" class="btn btn-primary btn-large">🩸 Register Donor</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- PAGE: BLOOD STOCK -->
+        <section class="page" id="page-stock">
+            <div class="page-header">
+                <h1>Blood Stock Management</h1>
+                <p>Monitor and manage available blood units</p>
+            </div>
+            <div class="blood-stock-grid" id="blood-stock-cards"></div>
+            <div class="card" style="margin-top:24px;">
+                <div class="card-header">
+                    <h3>✏️ Update Stock Manually</h3>
+                </div>
+                <form id="update-stock-form">
+                    <div class="form-grid" style="max-width:600px;">
+                        <div class="form-group">
+                            <label>Blood Group *</label>
+                            <select id="stock-blood-group" required>
+                                <option value="">— Select Blood Group —</option>
+                                <option>A+</option>
+                                <option>A-</option>
+                                <option>B+</option>
+                                <option>B-</option>
+                                <option>AB+</option>
+                                <option>AB-</option>
+                                <option>O+</option>
+                                <option>O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Units Available *</label>
+                            <input type="number" id="stock-units" min="0" placeholder="Enter units" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">💾 Update Stock</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- PAGE: SEARCH -->
+        <section class="page" id="page-search">
+            <div class="page-header">
+                <h1>Search Donors</h1>
+                <p>Find donors by blood group</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>🔍 Search by Blood Group</h3>
+                </div>
+                <div class="search-bar">
+                    <div class="blood-group-buttons" id="blood-group-btns">
+                        <button class="bg-btn" onclick="searchByBloodGroup('A+')">A+</button>
+                        <button class="bg-btn" onclick="searchByBloodGroup('A-')">A-</button>
+                        <button class="bg-btn" onclick="searchByBloodGroup('B+')">B+</button>
+                        <button class="bg-btn" onclick="searchByBloodGroup('B-')">B-</button>
+                        <button class="bg-btn" onclick="searchByBloodGroup('AB+')">AB+</button>
+                        <button class="bg-btn" onclick="searchByBloodGroup('AB-')">AB-</button>
+                        <button class="bg-btn" onclick="searchByBloodGroup('O+')">O+</button>
+                        <button class="bg-btn" onclick="searchByBloodGroup('O-')">O-</button>
+                        <button class="bg-btn all-btn" onclick="loadDonors(); clearSearchActive()">All</button>
+                    </div>
+                </div>
+                <div id="search-result-info" class="search-result-info"></div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Name</th>
+                                <th>Age</th>
+                                <th>Gender</th>
+                                <th>Blood Group</th>
+                                <th>Phone</th>
+                                <th>Last Donation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="search-results-body">
+                            <tr>
+                                <td colspan="7" class="loading-row">Select a blood group to search</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: DONATION HISTORY -->
+        <section class="page" id="page-history">
+            <div class="page-header">
+                <h1>Donation History</h1>
+                <p>View all past blood donations</p>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3>📋 All Donations</h3>
+                    <button class="btn btn-primary btn-sm" onclick="navigateTo('add-donation')">➕ Add Donation</button>
+                </div>
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Donor Name</th>
+                                <th>Blood Group</th>
+                                <th>Donation Date</th>
+                                <th>Units</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            <tr>
+                                <td colspan="6" class="loading-row">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- PAGE: ADD DONATION -->
+        <section class="page" id="page-add-donation">
+            <div class="page-header">
+                <h1>Record Donation</h1>
+                <p>Add a new donation entry — stock updates automatically</p>
+            </div>
+            <div class="card form-card">
+                <div class="card-header">
+                    <h3>💉 Donation Entry Form</h3>
+                </div>
+                <form id="add-donation-form" novalidate>
+                    <div class="form-grid">
+                        <div class="form-group full-width">
+                            <label>Select Donor *</label>
+                            <select id="donation-donor-id" required>
+                                <option value="">— Select Donor —</option>
+                            </select>
+                            <span class="error-msg" id="err-donor"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Blood Group *</label>
+                            <select id="donation-blood-group" required>
+                                <option value="">— Blood Group —</option>
+                                <option>A+</option>
+                                <option>A-</option>
+                                <option>B+</option>
+                                <option>B-</option>
+                                <option>AB+</option>
+                                <option>AB-</option>
+                                <option>O+</option>
+                                <option>O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Donation Date *</label>
+                            <input type="date" id="donation-date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Units Donated</label>
+                            <input type="number" id="donation-units" value="1" min="1" max="5">
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="reset" class="btn btn-secondary">🔄 Clear</button>
+                        <button type="submit" class="btn btn-primary btn-large">💉 Record Donation</button>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
